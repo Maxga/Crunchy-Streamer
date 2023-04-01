@@ -1,0 +1,8 @@
+CHROME_DRIVER_PATH=/home/user/path/to/where/stored/chromedriver
+GPG_PASSWD_FILE=/home/user/path/to/where/stored/cred.passwd.gpg
+TEXT_ONLY=1
+SCROLL_SPEED=5
+FIRST_SERIES=11eyes
+LAST_SERIES=ZOMBIE LAND SAGA
+AUDIO_LANG=ja-JP
+SUBTITLE_LANG=de-DE
