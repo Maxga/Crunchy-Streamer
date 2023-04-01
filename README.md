@@ -7,7 +7,7 @@ CAVE: THIS WILL START CHROME/CHROMIUM BROWSER TO SCRAPE THE ANIMES. PLEASE LET I
 (Headless browser seems to not work with cloudflare protection on crunchyroll!)
 
 I will not promise that I'm actively maintaining this when crunchyroll updates their 
-website, depends on if when will need the update myself for private usage.
+website, depends on when I will need the update myself for private usage.
 
 ## What it does
 
@@ -26,11 +26,11 @@ All episode titles and links are stored in Anime-Cache/series-title/seasontitle.
 
 ## Workflow
 
-During the script execution, it will first ask for series title (e.g. One Piece), it will
-search all animes and present you option, from which you have to choose which series to 
+During the script execution, it will first ask for a series title (e.g. One Piece), it will then
+search all animes and present you results, from which you have to choose which series to 
 watch.
 
-Afterwards it will present you with options for all series, you have to select the series.
+Afterwards it will present you with options for all seasons of that show, you have to select the season.
 
 Then it will present you with all episodes for that season, from which you have to select
 the episodes you want to watch.
@@ -39,9 +39,9 @@ The selected episodes will then be streamed with player of your choice consecuti
 
 # Usage
 
-Just call ./crunchy-script.py
+Just call ./crunchy-script.py (maybe chmod +x crunchy_script.py to make it executable)
 
-# Neccessary steps 
+# Necessary steps 
 -Download webdriver for selenium, then config the Path as CHROME_DRIVER_PATH
 	-Only tested it with Chrome/Chromium webdriver. SHOULD work with firefox, but
 	needs changes to the selenium code, aka use Firefox webdriver
