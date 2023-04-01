@@ -74,55 +74,55 @@ for configuration.
 
 ## Fields
 
-CHROME_DRIVER_PATH
-	-path to chrome webdriver binary for selenium
-GPG_PASSWD_FILE
+CHROME_DRIVER_PATH <br>
+	-path to chrome webdriver binary for selenium <br>
+GPG_PASSWD_FILE <br>
 	-path to gpg encrypted passwd file. Plain text file has to have 2 lines, first
-	line is the username, second line is the password.
-TEXT_ONLY
-	-<= 0 => Script will only ask for your input as text in terminal
-	- > 0 => Series, Season and Episode selection will use easygui choicebox
-SCROLL_SPEED
+	line is the username, second line is the password. <br>
+TEXT_ONLY <br>
+	-<= 0 => Script will only ask for your input as text in terminal <br>
+	- > 0 => Series, Season and Episode selection will use easygui choicebox <br>
+SCROLL_SPEED <br>
 	- https://www.crunchyroll.com/videos/alphabetical is scrolled by just repeatedly
 	invoking ARROW_DOWN to the page body. This reflects the amount how often the key
-	is invoked in one scrolling step
-FIRST_SERIES
-	- name of the first series on https://www.crunchyroll.com/videos/alphabetical
-LAST_SERIES
-	- name of the last series on https://www.crunchyroll.com/videos/alphabetical
-AUDIO_LANG
+	is invoked in one scrolling step <br>
+FIRST_SERIES <br>
+	- name of the first series on https://www.crunchyroll.com/videos/alphabetical <br>
+LAST_SERIES <br>
+	- name of the last series on https://www.crunchyroll.com/videos/alphabetical <br>
+AUDIO_LANG <br>
 	- which audio language to download - reflects options from crunchy-cli /
-	streamlink
-SUBTITLE_LANG
+	streamlink <br>
+SUBTITLE_LANG <br>
 	- which subtitle language to download - reflects options from crunchy-cli /
-	streamlink
-DELETE_AFTER_DOWNLOAD
+	streamlink <br>
+DELETE_AFTER_DOWNLOAD <br>
 	- only affects ONLY_STREAM=0. If set to <= 0, the downloaded episodes are stored
-	as <title>.mp4
+	as <title>.mp4 <br>
 	- If set to > 0, the episodes are stored as tmp.mp4, and deleted after the player
-	finishes
-ONLY_STREAM
+	finishes <br>
+ONLY_STREAM <br>
 	- <=0 => Crunchy-CLI is used to download the episodes first, and then open them
-	with player of your choice
+	with player of your choice <br>
 	- > 0 => streamlink is used to just stream the episodes directly to player of your
-	choice. BROKEN ATM AS STREAMLINK CRUNCHYROLL PLUGIN THROWS 403!
-JARO_WEIGHT
+	choice. BROKEN ATM AS STREAMLINK CRUNCHYROLL PLUGIN THROWS 403! <br>
+JARO_WEIGHT <br>
 	- when searching for series, jellyfish jaro_similarity,
-	damerau_levenshtein_distance and hamming_distance are used to compare the strings
-	- this is the weight how heavily the score influences the rank of the results
-	- I found just jaro_weight = 1, rest =0 to give the best results
-LEVEN_WEIGHT
-	- weight of damerau_levenshtein_distance
-HAMMING_WEIGHT
-	- weight of the hamming_distance
-SHOW_SERIES_AMOUNT
-	- amount of series to show for selection
-CASE_SENSITIVE
-	- search for series case sensitive (> 0) or not (<= 0)
-PLAYER_NAME
+	damerau_levenshtein_distance and hamming_distance are used to compare the strings <br>
+	- this is the weight how heavily the score influences the rank of the results <br>
+	- I found just jaro_weight = 1, rest =0 to give the best results <br>
+LEVEN_WEIGHT <br>
+	- weight of damerau_levenshtein_distance <br>
+HAMMING_WEIGHT <br>
+	- weight of the hamming_distance <br>
+SHOW_SERIES_AMOUNT <br>
+	- amount of series to show for selection <br>
+CASE_SENSITIVE <br>
+	- search for series case sensitive (> 0) or not (<= 0) <br>
+PLAYER_NAME <br>
 	- name of the player to open the files. Must be the exact name of the bin which
-	is used to open in terminal
-PLAYER_OPTIONS
-	- start options to pass to the player
-CRUNCHY_CLI_PATH
-	- path to crunchy_cli binary
+	is used to open in terminal <br>
+PLAYER_OPTIONS <br>
+	- start options to pass to the player <br>
+CRUNCHY_CLI_PATH <br>
+	- path to crunchy_cli binary <br>
