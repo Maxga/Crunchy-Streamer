@@ -6,6 +6,7 @@ from scraper import CrunchyScraper
 from easygui import choicebox, multchoicebox
 from termcolor import colored
 
+
 def selection(msg, title, choices, multi_selection, text_only):
     if text_only <= 0:
         if multi_selection:
@@ -50,10 +51,7 @@ def selection(msg, title, choices, multi_selection, text_only):
                     pass
 
 
-
-
 if __name__ == "__main__":
-    #out = check_output(["gpg", "-d", "cred.passwd.gpg"])
     with open("config.cfg", "r") as cfg:
         config_lines = cfg.readlines()
         cfg.close()
@@ -79,7 +77,6 @@ if __name__ == "__main__":
     )
     title = input(colored("\nPlease enter the name of the Anime you want to browse:\t", "green"))
 
-
     animes = cs.print_found_animes(title, 50)
     title_only_list = [f"{i+1}: {animes[i][0]}" for i in range(len(animes))]
 
@@ -88,41 +85,56 @@ if __name__ == "__main__":
 
     anime = animes[anime_index]
 
-    print(colored("Now we try to determine which Season and which Episodes to watch. If scraping an anime for the first time,"
-          + " again please let the Browser continue. You will need to select the season in the modal dialogue", "green"))
+    print(colored(
+        "Now we try to determine which Season and which Episodes to watch. If scraping an anime for the first time,"
+        + " again please let the Browser continue. You will need to select the season in the modal dialogue", "green"))
 
     episodes = cs.browse_series(anime[0], anime[1])
     titles_only = list(episodes.keys())
     episodes_choices = [f"{i+1}: {titles_only[i]}" for i in range(len(titles_only))]
     for episode in episodes_choices:
         print(episode)
-    episode_selection = selection("Please Select episodes to watch. If multiple are selected, they are streamed consecutively.",
-                  "Episode selection", episodes_choices, True, text_only)
+    episode_selection = selection(
+        "Please Select episodes to watch. If multiple are selected, they are streamed consecutively.",
+        "Episode selection", episodes_choices, True, text_only)
 
     for episode in episode_selection:
         title = episode.split(": ")[1]
         url = episodes[title]
-        print(colored(f"Streaming {title} ({url})...", "green"))
-        # wait till crunchyroll plugin is fixed
-        #return_code = call(["streamlink", f"--crunchyroll-username='{username}'",
-        #                    f"--crunchyroll-password='{password}'", url])
-
-        crunchy_cli = "/home/marcel/.lib/crunchy-cli/crunchy-cli/target/release/crunchy-cli"
-        return_code1 = call([f"{crunchy_cli} --credentials '{username}:{password}' login"], shell=True)
-        return_code2 = call(
-            [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o tmp.mp4 {url}"],
-            shell=True)
-
-        if return_code1 != 0 or return_code2 != 0:
-            yn = input(colored(
-                f"\nReturn code from crunchy_cli was {return_code1} (login) and {return_code2} (download) "
-                +"instead of 0=OK! Do you want to continue with the next episode? Y/N", "red"
-            ))
-            if not (yn == "Y" or yn == "y"):
-                sys.exit(return_code2)
+        if int(config["ONLY_STREAM"]) > 0:
+            print(colored("Not supported at the moment as streamlink crunchyroll plugin is broken! Aborting", "red"))
+            sys.exit()
+            # print(colored(f"Streaming {title} ({url})...", "green"))
+            # wait till crunchyroll plugin is fixed
+            # return_code = call(["streamlink", f"--crunchyroll-username='{username}'",
+            #                    f"--crunchyroll-password='{password}'", url])
         else:
-            call(["vlc --play-and-exit --sub-track=0 tmp.mp4"], shell=True)
-            call(["rm -rf tmp.mp4"], shell=True)
+            print(colored(f"Downloading and then streaming {title} ({url})...", "green"))
+            crunchy_cli = "/home/marcel/.lib/crunchy-cli/crunchy-cli/target/release/crunchy-cli"
+            return_code1 = call([f"{crunchy_cli} --credentials '{username}:{password}' login"], shell=True)
+            keep_after = int(config["DELETE_AFTER_DOWNLOAD"])
+            if keep_after <= 0:
+                return_code2 = call(
+                    [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o tmp.mp4 {url}"],
+                    shell=True)
+            else:
+                return_code2 = call(
+                    [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o {title}.mp4 "
+                     f"{url}"], shell=True)
+
+            if return_code1 != 0 or return_code2 != 0:
+                yn = input(colored(
+                    f"\nReturn code from crunchy_cli was {return_code1} (login) and {return_code2} (download) "
+                    + "instead of 0=OK! Do you want to continue with the next episode? Y/N", "red"
+                ))
+                if not (yn == "Y" or yn == "y"):
+                    sys.exit(return_code2)
+            else:
+                if keep_after <= 0:
+                    call(["vlc --play-and-exit --sub-track=0 tmp.mp4"], shell=True)
+                    call(["rm -rf tmp.mp4"], shell=True)
+                else:
+                    call([f"vlc --play-and-exit --sub-track=0 {title}.mp4"], shell=True)
 
 
 
