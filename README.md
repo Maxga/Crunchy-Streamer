@@ -25,6 +25,7 @@ All season titles of a series are stored in Anime-Cache/series-title/seasons.pkl
 All episode titles and links are stored in Anime-Cache/series-title/seasontitle.pkl - delete that if you want to update
 
 ## Workflow
+At the beginning, the script will ask for the password you have set to gpg decrypt your password file.
 
 During the script execution, it will first ask for a series title (e.g. One Piece), it will then
 search all animes and present you results, from which you have to choose which series to 
@@ -42,20 +43,20 @@ The selected episodes will then be streamed with player of your choice consecuti
 Just call ./crunchy-script.py (maybe chmod +x crunchy_script.py to make it executable)
 
 # Necessary steps 
--Download webdriver for selenium, then config the Path as CHROME_DRIVER_PATH
+-Download webdriver for selenium, then config the Path as CHROME_DRIVER_PATH <br>
 	-Only tested it with Chrome/Chromium webdriver. SHOULD work with firefox, but
-	needs changes to the selenium code, aka use Firefox webdriver
+	needs changes to the selenium code, aka use Firefox webdriver <br>
 
--Create password file (simple text file) which stores crunchyroll username and password
-	-first line: <crunchyroll-username>
-	-second line: <crunchyroll-password>
+-Create password file (simple text file) which stores crunchyroll username and password <br>
+	-first line: crunchyroll-username <br>
+	-second line: crunchyroll-password <br>
 	
--Encrypt the file with gpg -c <file_name>
+-Encrypt the file with gpg -c file_name <br>
 	-Select password for decrypt later, store in password manager or remember it
-	-delete the plain password file
-	-configure path to encrypted password file as GPG_PASSWD_FILE
+	-delete the plain password file <br>
+	-configure path to encrypted password file as GPG_PASSWD_FILE <br>
 	
--Check that FIRST_SERIES and LAST_SERIES are correct in config file
+-Check that FIRST_SERIES and LAST_SERIES are correct in config file <br>
 
 # Legal warning
 (Copied from https://github.com/Godzil/Crunchy)
