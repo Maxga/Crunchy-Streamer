@@ -58,8 +58,8 @@ if __name__ == "__main__":
 
     config = {}
     for line in config_lines:
-        line_split = line.split("=")
-        config[line_split[0]] = line_split[1].strip("\n")
+        eq_index = line.index("=")
+        config[line[:eq_index]] = line[eq_index+1:].strip("\n")
 
     print(colored("\nScraping all Crunchyroll animes - if done for the first time, a browser window is opened, which"
           + " will take some time. Are you sure you want to continue?", "red"))
@@ -71,13 +71,21 @@ if __name__ == "__main__":
     passwd_split = check_output(["gpg", "-d", passwd_path]).decode("utf-8").split("\n")
     username = passwd_split[0].strip("\n")
     password = passwd_split[1].strip("\n")
+    case_sens = int(config["CASE_SENSITIVE"])
+    if case_sens <= 0:
+        case_sens = False
+    else:
+        case_sens = True
     cs = CrunchyScraper(
         driver_path=config["CHROME_DRIVER_PATH"], anchor_start=config["FIRST_SERIES"], anchor_end=config["LAST_SERIES"],
         text_only=text_only, username=username, password=password, scroll_speed=config["SCROLL_SPEED"]
     )
     title = input(colored("\nPlease enter the name of the Anime you want to browse:\t", "green"))
 
-    animes = cs.print_found_animes(title, 50)
+    animes = cs.print_found_animes(title, how_many_entries_to_show=int(config["SHOW_SERIES_AMOUNT"]),
+                                   jaro_weight=int(config["JARO_WEIGHT"]),
+                                   leven_weight=int(config["LEVEN_WEIGHT"]),
+                                   hamming_weight=int(config["HAMMING_WEIGHT"]), case_sensitive=case_sens)
     title_only_list = [f"{i+1}: {animes[i][0]}" for i in range(len(animes))]
 
     anime = selection("Select the Anime to scrape", "Anime selection", title_only_list, False, text_only)
@@ -110,17 +118,18 @@ if __name__ == "__main__":
             #                    f"--crunchyroll-password='{password}'", url])
         else:
             print(colored(f"Downloading and then streaming {title} ({url})...", "green"))
-            crunchy_cli = "/home/marcel/.lib/crunchy-cli/crunchy-cli/target/release/crunchy-cli"
+            crunchy_cli = config["CRUNCHY_CLI_PATH"]
             return_code1 = call([f"{crunchy_cli} --credentials '{username}:{password}' login"], shell=True)
-            keep_after = int(config["DELETE_AFTER_DOWNLOAD"])
-            if keep_after <= 0:
+            delete_after = int(config["DELETE_AFTER_DOWNLOAD"])
+            if delete_after > 0:
                 return_code2 = call(
                     [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o tmp.mp4 {url}"],
                     shell=True)
             else:
+                title_stripped = title.replace(' ', '')
                 return_code2 = call(
-                    [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o {title}.mp4 "
-                     f"{url}"], shell=True)
+                    [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} "
+                     + f"-o {title_stripped}.mp4 {url}"], shell=True)
 
             if return_code1 != 0 or return_code2 != 0:
                 yn = input(colored(
@@ -130,11 +139,12 @@ if __name__ == "__main__":
                 if not (yn == "Y" or yn == "y"):
                     sys.exit(return_code2)
             else:
-                if keep_after <= 0:
-                    call(["vlc --play-and-exit --sub-track=0 tmp.mp4"], shell=True)
+                if delete_after > 0:
+                    print(f"Command:{config['PLAYER_NAME']} {config['PLAYER_OPTIONS']} tmp.mp4")
+                    call([f"{config['PLAYER_NAME']} {config['PLAYER_OPTIONS']} tmp.mp4"], shell=True)
                     call(["rm -rf tmp.mp4"], shell=True)
                 else:
-                    call([f"vlc --play-and-exit --sub-track=0 {title}.mp4"], shell=True)
+                    call([f"{config['PLAYER_NAME']} {config['PLAYER_OPTIONS']} {title_stripped}.mp4"], shell=True)
 
 
 

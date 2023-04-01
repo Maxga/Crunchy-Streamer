@@ -4,3 +4,4 @@ Anime-Cache/
 *.read
 *.cfg
 *.idea
+__pycache__

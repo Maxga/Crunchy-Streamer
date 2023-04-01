@@ -229,7 +229,6 @@ class CrunchyScraper:
                 season_titles = [season_title]
         return season_titles, season_title
 
-
     def browse_series(self, title, url):
         if not os.path.exists(self.CACHE_DIRECTORY):
             os.mkdir(self.CACHE_DIRECTORY)
@@ -370,7 +369,7 @@ class CrunchyScraper:
         return title_list[:how_many_entries_to_show]
 
     def print_found_animes(self, title_to_find, how_many_entries_to_show=50, jaro_weight=1, leven_weight=0,
-                           hamming_weight=0,case_sensitive=False):
+                           hamming_weight=0, case_sensitive=False):
         titles = self.find_animes(title_to_find, how_many_entries_to_show,
                                   jaro_weight, leven_weight, hamming_weight, case_sensitive)
         for i in range(how_many_entries_to_show):
