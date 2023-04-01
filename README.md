@@ -57,6 +57,16 @@ Just call ./crunchy-script.py (maybe chmod +x crunchy_script.py to make it execu
 	
 -Check that FIRST_SERIES and LAST_SERIES are correct in config file
 
+# Legal warning
+(Copied from https://github.com/Godzil/Crunchy)
+This application is not endorsed or affliated with CrunchyRoll. 
+The usage of this application enables episodes to be downloaded for offline convenience which may be forbidden 
+by law in your country. Usage of this application may also cause a violation of the agreed Terms of Service between you 
+and the stream provider. A tool is not responsible for your actions; please make an informed decision prior to using 
+this application.
+
+ONLY USE THIS TOOL IF YOU HAVE A PREMIUM ACCOUNT
+
 # Configuration 
 
 Please see config.cfg.example for the Fields which are currently used
