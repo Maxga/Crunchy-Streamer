@@ -127,3 +127,7 @@ PLAYER_OPTIONS <br>
 	- start options to pass to the player <br>
 CRUNCHY_CLI_PATH <br>
 	- path to crunchy_cli binary <br>
+	
+# Shoutouts
+https://github.com/crunchy-labs/crunchy-cli/ - awesome, fast tool to download crunchyroll episodes which is used here <br>
+https://github.com/streamlink/streamlink - awesome tool to stream content from multiple streaming providers
