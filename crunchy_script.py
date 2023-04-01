@@ -1,10 +1,11 @@
 #!/usr/bin/python
 import sys
-import time
 from subprocess import check_output, call
 from scraper import CrunchyScraper
 from easygui import choicebox, multchoicebox
 from termcolor import colored
+import os
+from pathlib import Path
 
 
 def selection(msg, title, choices, multi_selection, text_only):
@@ -97,11 +98,22 @@ if __name__ == "__main__":
         "Now we try to determine which Season and which Episodes to watch. If scraping an anime for the first time,"
         + " again please let the Browser continue. You will need to select the season in the modal dialogue", "green"))
 
-    episodes = cs.browse_series(anime[0], anime[1])
+    episodes, season_title = cs.browse_series(anime[0], anime[1])
+    season_title_stripped = season_title.replace(' ', '')
+    last_episode_path = Path.joinpath(
+        cs.FILE_PATH, "Anime-Cache", anime[0], season_title_stripped + "_last_episode.txt")
+
     titles_only = list(episodes.keys())
     episodes_choices = [f"{i+1}: {titles_only[i]}" for i in range(len(titles_only))]
     for episode in episodes_choices:
         print(episode)
+
+    if os.path.exists(last_episode_path):
+        last_log = open(last_episode_path, "r")
+        content = last_log.readlines()
+        print(colored(f"\nThe last, new episode of that season you have seen was {content[-1]}\n", "green"))
+        last_log.close()
+
     episode_selection = selection(
         "Please Select episodes to watch. If multiple are selected, they are streamed consecutively.",
         "Episode selection", episodes_choices, True, text_only)
@@ -109,6 +121,7 @@ if __name__ == "__main__":
     for episode in episode_selection:
         title = episode.split(": ")[1]
         url = episodes[title]
+
         if int(config["ONLY_STREAM"]) > 0:
             print(colored("Not supported at the moment as streamlink crunchyroll plugin is broken! Aborting", "red"))
             sys.exit()
@@ -139,6 +152,12 @@ if __name__ == "__main__":
                 if not (yn == "Y" or yn == "y"):
                     sys.exit(return_code2)
             else:
+                with open(last_episode_path, "a+") as last_log:
+                    last_log.seek(0)
+                    content = last_log.read()
+                    if title not in content:
+                        last_log.write(f"{title}\n")
+                    last_log.close()
                 if delete_after > 0:
                     print(f"Command:{config['PLAYER_NAME']} {config['PLAYER_OPTIONS']} tmp.mp4")
                     call([f"{config['PLAYER_NAME']} {config['PLAYER_OPTIONS']} tmp.mp4"], shell=True)

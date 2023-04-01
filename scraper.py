@@ -1,9 +1,6 @@
 import os.path
 
-import requests
-from requests.auth import HTTPBasicAuth
 import time
-import cloudscraper
 import json
 from haralyzer import HarParser
 from selenium import webdriver
@@ -262,10 +259,10 @@ class CrunchyScraper:
                     print(colored(
                         f"\nEpisodes load from pickle-Cache - if you want to update, delete {title_pickle_path}", "green"
                     ))
-                    return episodes_dict
+                    return episodes_dict, season_title
 
         if self.driver_path is not None:
-            wdrv = webdriver.Chrome(driver_path)
+            wdrv = webdriver.Chrome(self.driver_path)
         else:
             wdrv = webdriver.Chrome()
         wdrv.maximize_window()
@@ -299,7 +296,7 @@ class CrunchyScraper:
             ))
             episode_pickle.close()
         wdrv.close()
-        return episodes_dict
+        return episodes_dict, season_title
 
     #Manually( or automated with some browser script) inspect network traffic with developer tools,
     # scroll / browse so that every anime in the base_url is parsed
