@@ -33,8 +33,12 @@ class CrunchyScraper:
     # @anchor_end: str, title after which scraping breaks (last title usually)
     # @scroll_speed: int, how many ARROW_DOWN events are send per scrape. I tried with page_down, but some entries were skipped
     # @har_path: str, if set it will try to parse .har file in order to create the dict, without selenium
+    # @forced_seasons_up
     def __init__(self, driver_path=None, anchor_start='11eyes', anchor_end='ZOMBIE LAND SAGA', scroll_speed=5,
-                 har_path = None, text_only=0, username='', password=''):
+                 har_path = None, text_only=0, username='', password='', force_episode_update=False,
+                 force_seasons_update=False):
+        self.force_episode_updates = force_episode_update
+        self.force_seasons_update = force_seasons_update
         self.text_only = text_only
         self.username = username
         self.password = password
@@ -239,7 +243,7 @@ class CrunchyScraper:
         season_title = None
         season_loaded = False
 
-        if os.path.exists(seasons_pickle_path):
+        if os.path.exists(seasons_pickle_path) and not self.force_seasons_update:
             with open(seasons_pickle_path, 'rb') as seas_pckl:
                 season_titles = pickle.load(seas_pckl)
                 seas_pckl.close()
@@ -249,10 +253,9 @@ class CrunchyScraper:
             season_title = season_titles[self._get_season_number_from_user(season_titles) - 1]
             season_title_formatted = season_title.replace(' ', '').replace('\n', '')
             title_pickle_path = Path.joinpath(title_subdir_path, f"{season_title_formatted}.pkl")
-            x = os.path.exists(title_pickle_path)
             season_loaded = True
 
-            if os.path.exists(title_pickle_path):
+            if os.path.exists(title_pickle_path) and not self.force_episode_updates:
                 with open(title_pickle_path, 'rb') as tit_pick:
                     episodes_dict = pickle.load(tit_pick)
                     tit_pick.close()

@@ -72,6 +72,8 @@ if __name__ == "__main__":
     passwd_split = check_output(["gpg", "-d", passwd_path]).decode("utf-8").split("\n")
     username = passwd_split[0].strip("\n")
     password = passwd_split[1].strip("\n")
+    force_episodes = False if int(config["FORCE_EPISODES_UPDATE"]) <= 0 else True
+    force_seasons = False if int(config["FORCE_SEASONS_UPDATE"]) <= 0 else True
     case_sens = int(config["CASE_SENSITIVE"])
     if case_sens <= 0:
         case_sens = False
@@ -79,7 +81,8 @@ if __name__ == "__main__":
         case_sens = True
     cs = CrunchyScraper(
         driver_path=config["CHROME_DRIVER_PATH"], anchor_start=config["FIRST_SERIES"], anchor_end=config["LAST_SERIES"],
-        text_only=text_only, username=username, password=password, scroll_speed=config["SCROLL_SPEED"]
+        text_only=text_only, username=username, password=password, scroll_speed=config["SCROLL_SPEED"],
+        force_episode_update=force_episodes, force_seasons_update=force_seasons
     )
     title = input(colored("\nPlease enter the name of the Anime you want to browse:\t", "green"))
 

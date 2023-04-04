@@ -16,3 +16,5 @@ CASE_SENSITIVE=0
 PLAYER_NAME=vlc
 PLAYER_OPTIONS=--play-and-exit --sub-track=0
 CRUNCHY_CLI_PATH=/home/user/path/to/crunchy-cli
+FORCE_EPISODES_UPDATE=0
+FORCE_SEASONS_UPDATE=1
