@@ -28,6 +28,17 @@ class CrunchyScraper:
     # how often selenium tries to recover by scrolling when looking for episodes (because of maybe element stale exc)
     MAX_ERROR_COUNT = 3
 
+    def open_browser():
+        if self.driver_path is not None:
+            wdrv = webdriver.Chrome(self.driver_path)
+        else:
+            wdrv = webdriver.Chrome()
+        # have it max size to browse as much content as possible
+        wdrv.maximize_window()
+        # then minimize to not be visible
+        wdrv.minimize_window()
+        return wdrv
+
     # @driver_path: str, path to webdriver binary
     # @anchor_start: str, text that is supposed to be shown on base_url webpage after loading is finished
     # @anchor_end: str, title after which scraping breaks (last title usually)
@@ -42,6 +53,7 @@ class CrunchyScraper:
         self.text_only = text_only
         self.username = username
         self.password = password
+        self.driver_path = driver_path
         if os.path.exists(self.FLAG_FILE_NAME):
             print(colored(
                 "\nAnimes already read - loading. If you want to re-parse, delete {}".format(self.FLAG_FILE_NAME), "green"
@@ -58,12 +70,7 @@ class CrunchyScraper:
 
         self.base_url = "https://www.crunchyroll.com/videos/alphabetical"
         # This does not work in headless mode due to cloudflare..
-        if driver_path is not None:
-            wdrv = webdriver.Chrome(driver_path)
-            self.driver_path = driver_path
-        else:
-            wdrv = webdriver.Chrome()
-        wdrv.maximize_window()
+        wdrv = self.open_browser()
         wdrv.get(self.base_url)
         try:
             self.wait_for_string_in_page(wdrv, anchor_start)
@@ -264,11 +271,7 @@ class CrunchyScraper:
                     ))
                     return episodes_dict, season_title
 
-        if self.driver_path is not None:
-            wdrv = webdriver.Chrome(self.driver_path)
-        else:
-            wdrv = webdriver.Chrome()
-        wdrv.maximize_window()
+        wdrv = self.open_browser()
         wdrv.get(url)
         self._login(wdrv)
         body = wdrv.find_element(By.CSS_SELECTOR, 'body')
