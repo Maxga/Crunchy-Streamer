@@ -29,6 +29,11 @@ def selection(msg, title, choices, multi_selection, text_only):
             while inp is None:
                 try:
                     inp = input(colored(f"\n{msg} - e.g. 1,2,4 for explicit selection, 1-4 for range\t", "green"))
+                    if "++" in inp:
+                        if "," in inp or "-" in inp:
+                            print(colored("++ is only allowed with single episode - aborting", "red"))
+                            terminate_sigint(None, None)
+
                     if "," in inp:
                         insplit = inp.split(",")
                         out_selection = []
@@ -41,7 +46,10 @@ def selection(msg, title, choices, multi_selection, text_only):
                     elif "-" in inp:
                         return handle_dash(inp, choices)
                     else:
-                        return [choices[int(inp)-1]]
+                        if "++" in inp:
+                            return choices[int(inp) - 1:]
+                        else:
+                            return [choices[int(inp)-1]]
                 except:
                     pass
         else:
