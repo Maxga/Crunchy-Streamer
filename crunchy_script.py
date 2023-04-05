@@ -8,6 +8,7 @@ from termcolor import colored
 import os
 from pathlib import Path
 import signal
+import datetime
 
 
 def selection(msg, title, choices, multi_selection, text_only):
@@ -64,13 +65,12 @@ if __name__ == "__main__":
             proc.terminate()
 
         if 'delete_after' in variables and delete_after > 0:
-            print(colored("Deleting temporary mp4 files", "red"))
-            pwd = Path(os.path.dirname(__file__))
-            for filename in pwd.glob("tmp*.mp4"):
+            tmp_path = Path.joinpath(CrunchyScraper.FILE_PATH, "episodes-tmp")
+            for filename in tmp_path.glob("tmp*.mp4"):
                 print(colored(f"Deleting {filename}", "red"))
                 os.remove(filename)
         print(colored("Cleanup done, exiting.", "green"))
-        sys.exit()
+        sys.exit(1)
 
     signal.signal(signal.SIGINT, terminate_sigint)
 
@@ -96,6 +96,14 @@ if __name__ == "__main__":
     force_episodes = False if int(config["FORCE_EPISODES_UPDATE"]) <= 0 else True
     force_seasons = False if int(config["FORCE_SEASONS_UPDATE"]) <= 0 else True
     case_sens = int(config["CASE_SENSITIVE"])
+    delete_after = int(config["DELETE_AFTER_DOWNLOAD"])
+    episodes_tmp_path = Path.joinpath(CrunchyScraper.FILE_PATH, "episodes-tmp")
+    episodes_save_path = Path.joinpath(CrunchyScraper.FILE_PATH, "episodes-save")
+
+    if not os.path.exists(episodes_tmp_path) and delete_after > 0:
+        os.mkdir(episodes_tmp_path)
+    elif not os.path.exists(episodes_save_path) and delete_after <= 0:
+        os.mkdir(episodes_save_path)
     if case_sens <= 0:
         case_sens = False
     else:
@@ -135,7 +143,21 @@ if __name__ == "__main__":
     if os.path.exists(last_episode_path):
         last_log = open(last_episode_path, "r")
         content = last_log.readlines()
-        print(colored(f"\nThe last, new episode of that season you have seen was {content[-1]}\n", "green"))
+        newest_title = ''
+        newest_count = -1
+        newest_date = datetime.datetime(1970, 1, 1, 12, 0, 0, 0)
+        for line in content:
+                line = line.replace("\n", "")
+                spl = line.split(";split;")
+                ep_date = datetime.datetime.strptime(spl[2], "%c")
+                if ep_date > newest_date:
+                    newest_count = int(spl[1])
+                    newest_title = spl[0]
+                    newest_date = ep_date
+        print(colored(
+            f"\nThe last, new episode of that season you have seen was {newest_title}\n"
+            + f"You have seen that episode {newest_count} times, the last time on {newest_date.strftime('%c')}", "green"
+        ))
         last_log.close()
 
     episode_selection = selection(
@@ -159,16 +181,17 @@ if __name__ == "__main__":
             print(colored(f"Downloading and then streaming {title} ({url})...", "green"))
             crunchy_cli = config["CRUNCHY_CLI_PATH"]
             return_code1 = call([f"{crunchy_cli} --credentials '{username}:{password}' login"], shell=True)
-            delete_after = int(config["DELETE_AFTER_DOWNLOAD"])
             if delete_after > 0:
+                file_name = Path.joinpath(episodes_tmp_path, f"tmp{downloaded}.mp4")
                 return_code2 = call(
-                    [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o tmp{downloaded}.mp4 {url}"],
+                    [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o {file_name} {url}"],
                     shell=True)
             else:
                 title_stripped = title.replace(' ', '')
+                file_name = Path.joinpath(episodes_save_path, f"{title_stripped}.mp4")
                 return_code2 = call(
                     [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} "
-                     + f"-o {title_stripped}.mp4 {url}"], shell=True)
+                     + f"-o {file_name} {url}"], shell=True)
 
             if return_code1 != 0 or return_code2 != 0:
                 yn = input(colored(
@@ -176,29 +199,43 @@ if __name__ == "__main__":
                     + "instead of 0=OK! Do you want to continue with the next episode? Y/N", "red"
                 ))
                 if not (yn == "Y" or yn == "y"):
-                    sys.exit(return_code2)
+                    terminate_sigint(None, None)
             else:
                 def play_file(player_name, player_options, filename, delete=True):
                         call([f"{player_name} {player_options} {filename}"], shell=True)
-                        if delete:
+                        if delete > 0:
                             call([f"rm -rf {filename}"], shell=True)
-                with open(last_episode_path, "a+") as last_log:
-                    last_log.seek(0)
-                    content = last_log.read()
-                    if title not in content:
-                        last_log.write(f"{title}\n")
-                    last_log.close()
+
                 if proc is not None:
                     proc.join()
-                if delete_after > 0:
-                    proc = Process(target=play_file, args=(config['PLAYER_NAME'], config['PLAYER_OPTIONS'],
-                                                           f"tmp{downloaded}.mp4"))
-                    proc.start()
-                    downloaded += 1
-                else:
-                    proc = Process(target=play_file, args=(config['PLAYER_NAME'], config['PLAYER_OPTIONS'],
-                                                           f"{title_stripped}.mp4", False))
-                    proc.start()
+
+                content = []
+                if os.path.exists(last_episode_path):
+                    log_file = open(last_episode_path,"r")
+                    content = log_file.readlines()
+                    log_file.close()
+
+                with open(last_episode_path, "w") as last_log:
+                    new_content = []
+                    title_found = False
+                    for line in content:
+                        spl = line.split(";split;")
+                        print(f"Comparing {title} to {spl[0]} equals {title in spl[0]}")
+                        if title in spl[0]:
+                            new_content.append(f"{spl[0]};split;{int(spl[1])+1};split;{datetime.datetime.now().strftime('%c')}\n")
+                            title_found = True
+                        else:
+                            new_content.append(line)
+                    if not title_found:
+                        new_content.append(f"{title};split;1;split;{datetime.datetime.now().strftime('%c')}\n")
+                    last_log.writelines(new_content)
+                    last_log.close()
+
+                proc = Process(target=play_file, args=(config['PLAYER_NAME'], config['PLAYER_OPTIONS'], file_name,
+                                                       delete_after))
+                proc.start()
+                downloaded += 1
+
 
 
 
