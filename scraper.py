@@ -28,7 +28,7 @@ class CrunchyScraper:
     # how often selenium tries to recover by scrolling when looking for episodes (because of maybe element stale exc)
     MAX_ERROR_COUNT = 3
 
-    def open_browser():
+    def open_browser(self):
         if self.driver_path is not None:
             wdrv = webdriver.Chrome(self.driver_path)
         else:
@@ -36,8 +36,14 @@ class CrunchyScraper:
         # have it max size to browse as much content as possible
         wdrv.maximize_window()
         # then minimize to not be visible
-        wdrv.minimize_window()
+        # this inhibits selenium from clicking elements, need to run it max size sadly
+        # neither setting y position to -10000, using a virtual display, minimizing nr headless works, sadly
+        # wdrv.minimize_window()
         return wdrv
+
+    def close_browser(self, wdrv):
+        wdrv.close()
+
 
     # @driver_path: str, path to webdriver binary
     # @anchor_start: str, text that is supposed to be shown on base_url webpage after loading is finished
@@ -46,7 +52,7 @@ class CrunchyScraper:
     # @har_path: str, if set it will try to parse .har file in order to create the dict, without selenium
     # @forced_seasons_up
     def __init__(self, driver_path=None, anchor_start='11eyes', anchor_end='ZOMBIE LAND SAGA', scroll_speed=5,
-                 har_path = None, text_only=0, username='', password='', force_episode_update=False,
+                 har_path=None, text_only=0, username='', password='', force_episode_update=False,
                  force_seasons_update=False):
         self.force_episode_updates = force_episode_update
         self.force_seasons_update = force_seasons_update
@@ -76,7 +82,7 @@ class CrunchyScraper:
             self.wait_for_string_in_page(wdrv, anchor_start)
         except TimeoutError:
             print("Error while waiting for {} in page_source".format(anchor_start))
-            wdrv.close()
+            self.close_browser(wdrv)
             return None
 
         bgn = time.time()
@@ -114,7 +120,7 @@ class CrunchyScraper:
             print("Animes pickled into animes.pkl.")
             ani_file.close()
         open("flag-animes.read", "w").close()
-        wdrv.close()
+        self.close_browser(wdrv)
 
     def _wait_until_appears(self, wdrv, by_what):
         element = WebDriverWait(wdrv, 10).until(EC.presence_of_element_located(by_what))
@@ -179,7 +185,7 @@ class CrunchyScraper:
                 errors_detected += 1
                 if errors_detected >= self.MAX_ERROR_COUNT:
                     print("Failed to recover - critical error! Aborting!")
-                    wdrv.close()
+                    self.close_browser(wdrv)
                     return None
                 pass
 
@@ -204,7 +210,7 @@ class CrunchyScraper:
                 body.send_keys(Keys.PAGE_DOWN)
                 if time.time() - bgn > 30:
                     print("Timeout while trying to bring the show more button into sight - aborting")
-                    wdrv.close()
+                    self.close_browser(wdrv)
                     return None
             WebDriverWait(wdrv, 10).until(EC.element_to_be_clickable(show_more_button))
             show_more_button.click()
@@ -301,7 +307,7 @@ class CrunchyScraper:
                 f"\nEpisodes pickled - cached for later usage. If you want to update, delete {title_pickle_path}", "green"
             ))
             episode_pickle.close()
-        wdrv.close()
+        self.close_browser(wdrv)
         return episodes_dict, season_title
 
     #Manually( or automated with some browser script) inspect network traffic with developer tools,

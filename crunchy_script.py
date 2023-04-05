@@ -7,6 +7,7 @@ from easygui import choicebox, multchoicebox
 from termcolor import colored
 import os
 from pathlib import Path
+import signal
 
 
 def selection(msg, title, choices, multi_selection, text_only):
@@ -54,6 +55,25 @@ def selection(msg, title, choices, multi_selection, text_only):
 
 
 if __name__ == "__main__":
+
+    def terminate_sigint(SignalNumber, Frame):
+        print(colored("Terminating Process and removing temporary files as SIGINT was caught!", "red"))
+        variables = globals()
+        if 'proc' in variables and proc is not None:
+            print(colored("Process was found, calling terminate() function", "red"))
+            proc.terminate()
+
+        if 'delete_after' in variables and delete_after > 0:
+            print(colored("Deleting temporary mp4 files", "red"))
+            pwd = Path(os.path.dirname(__file__))
+            for filename in pwd.glob("tmp*.mp4"):
+                print(colored(f"Deleting {filename}", "red"))
+                os.remove(filename)
+        print(colored("Cleanup done, exiting.", "green"))
+        sys.exit()
+
+    signal.signal(signal.SIGINT, terminate_sigint)
+
     with open(Path.joinpath(CrunchyScraper.FILE_PATH,"config.cfg"), "r") as cfg:
         config_lines = cfg.readlines()
         cfg.close()
@@ -179,6 +199,8 @@ if __name__ == "__main__":
                     proc = Process(target=play_file, args=(config['PLAYER_NAME'], config['PLAYER_OPTIONS'],
                                                            f"{title_stripped}.mp4", False))
                     proc.start()
+
+
 
 
 
