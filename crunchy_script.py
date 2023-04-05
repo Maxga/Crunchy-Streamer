@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import sys
 from subprocess import check_output, call
+from multiprocessing import Process
 from scraper import CrunchyScraper
 from easygui import choicebox, multchoicebox
 from termcolor import colored
@@ -53,7 +54,7 @@ def selection(msg, title, choices, multi_selection, text_only):
 
 
 if __name__ == "__main__":
-    with open("config.cfg", "r") as cfg:
+    with open(Path.joinpath(CrunchyScraper.FILE_PATH,"config.cfg"), "r") as cfg:
         config_lines = cfg.readlines()
         cfg.close()
 
@@ -121,6 +122,8 @@ if __name__ == "__main__":
         "Please Select episodes to watch. If multiple are selected, they are streamed consecutively.",
         "Episode selection", episodes_choices, True, text_only)
 
+    proc = None
+    downloaded = 0
     for episode in episode_selection:
         title = episode.split(": ")[1]
         url = episodes[title]
@@ -139,7 +142,7 @@ if __name__ == "__main__":
             delete_after = int(config["DELETE_AFTER_DOWNLOAD"])
             if delete_after > 0:
                 return_code2 = call(
-                    [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o tmp.mp4 {url}"],
+                    [f"{crunchy_cli} download -a {config['AUDIO_LANG']} -s {config['SUBTITLE_LANG']} -o tmp{downloaded}.mp4 {url}"],
                     shell=True)
             else:
                 title_stripped = title.replace(' ', '')
@@ -155,19 +158,27 @@ if __name__ == "__main__":
                 if not (yn == "Y" or yn == "y"):
                     sys.exit(return_code2)
             else:
+                def play_file(player_name, player_options, filename, delete=True):
+                        call([f"{player_name} {player_options} {filename}"], shell=True)
+                        if delete:
+                            call([f"rm -rf {filename}"], shell=True)
                 with open(last_episode_path, "a+") as last_log:
                     last_log.seek(0)
                     content = last_log.read()
                     if title not in content:
                         last_log.write(f"{title}\n")
                     last_log.close()
+                if proc is not None:
+                    proc.join()
                 if delete_after > 0:
-                    print(f"Command:{config['PLAYER_NAME']} {config['PLAYER_OPTIONS']} tmp.mp4")
-                    call([f"{config['PLAYER_NAME']} {config['PLAYER_OPTIONS']} tmp.mp4"], shell=True)
-                    call(["rm -rf tmp.mp4"], shell=True)
+                    proc = Process(target=play_file, args=(config['PLAYER_NAME'], config['PLAYER_OPTIONS'],
+                                                           f"tmp{downloaded}.mp4"))
+                    proc.start()
+                    downloaded += 1
                 else:
-                    call([f"{config['PLAYER_NAME']} {config['PLAYER_OPTIONS']} {title_stripped}.mp4"], shell=True)
-
+                    proc = Process(target=play_file, args=(config['PLAYER_NAME'], config['PLAYER_OPTIONS'],
+                                                           f"{title_stripped}.mp4", False))
+                    proc.start()
 
 
 
