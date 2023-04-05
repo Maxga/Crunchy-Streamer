@@ -47,7 +47,8 @@ def selection(msg, title, choices, multi_selection, text_only):
                         return handle_dash(inp, choices)
                     else:
                         if "++" in inp:
-                            return choices[int(inp) - 1:]
+                            real_inp = inp[:inp.index("++")]
+                            return choices[int(real_inp) - 1:]
                         else:
                             return [choices[int(inp)-1]]
                 except:
